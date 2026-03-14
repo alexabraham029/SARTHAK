@@ -1,0 +1,123 @@
+[
+  {
+    "id": "case_kesavananda_bharati",
+    "case_name": "Kesavananda Bharati v. State of Kerala",
+    "court": "Supreme Court",
+    "year": 1973,
+    "citation": "AIR 1973 SC 1461",
+    "facts": "The case challenged the Kerala government's land reform legislation. The petitioner, the head of a Hindu monastery, questioned whether Parliament's power to amend the Constitution was unlimited and whether it could abridge fundamental rights.",
+    "judgment": "The Supreme Court established the 'Basic Structure Doctrine', holding that while Parliament has wide powers to amend the Constitution, it cannot alter its basic structure. The basic structure includes supremacy of the Constitution, republican and democratic form of government, secular character, separation of powers, and federalism. This landmark judgment protected fundamental rights from arbitrary amendment.",
+    "legal_issues": [
+      "Extent of Parliament's power to amend the Constitution",
+      "Whether fundamental rights can be completely abrogated",
+      "Basic structure of the Constitution"
+    ],
+    "type": "case_law"
+  },
+  {
+    "id": "case_maneka_gandhi",
+    "case_name": "Maneka Gandhi v. Union of India",
+    "court": "Supreme Court",
+    "year": 1978,
+    "citation": "AIR 1978 SC 597",
+    "facts": "Maneka Gandhi's passport was impounded by the government without giving reasons. She challenged this action as violating her fundamental right to travel abroad under Article 21 (right to life and personal liberty).",
+    "judgment": "The Supreme Court expanded the interpretation of Article 21, holding that 'life' means more than mere animal existence - it includes the right to live with dignity and all aspects that make life meaningful. Any procedure depriving personal liberty must be just, fair, and reasonable. This case revolutionized the understanding of fundamental rights in India.",
+    "legal_issues": [
+      "Scope of Article 21 (Right to Life and Personal Liberty)",
+      "Right to travel abroad",
+      "Principles of natural justice"
+    ],
+    "type": "case_law"
+  },
+  {
+    "id": "case_vishaka",
+    "case_name": "Vishaka v. State of Rajasthan",
+    "court": "Supreme Court",
+    "year": 1997,
+    "citation": "AIR 1997 SC 3011",
+    "facts": "The case arose from the gang rape of a social worker in Rajasthan. There was no domestic law addressing sexual harassment at the workplace at that time.",
+    "judgment": "The Supreme Court laid down comprehensive guidelines (Vishaka Guidelines) for prevention and redressal of sexual harassment at workplaces. These guidelines remained in force until the Sexual Harassment of Women at Workplace Act, 2013 was enacted. The Court held that in the absence of domestic law, international conventions ratified by India can be used to interpret fundamental rights.",
+    "legal_issues": [
+      "Sexual harassment at workplace",
+      "Right to gender equality under Articles 14, 15, 19(1)(g) and 21",
+      "Application of international law in domestic courts"
+    ],
+    "type": "case_law"
+  },
+  {
+    "id": "case_mohd_ahmed_khan",
+    "case_name": "Mohd. Ahmed Khan v. Shah Bano Begum",
+    "court": "Supreme Court",
+    "year": 1985,
+    "citation": "AIR 1985 SC 945",
+    "facts": "Shah Bano, a 62-year-old Muslim woman, was divorced by her husband after 40 years of marriage. She sought maintenance under Section 125 CrPC. The husband argued that he had paid the required amount under Islamic law and owed nothing further.",
+    "judgment": "The Supreme Court held that Section 125 CrPC applies to all citizens irrespective of religion, and Muslim women are entitled to maintenance beyond the iddat period. The Court emphasized that personal laws cannot override criminal law provisions intended to prevent vagrancy and destitution. This judgment led to significant political controversy and eventually the Muslim Women (Protection of Rights on Divorce) Act, 1986.",
+    "legal_issues": [
+      "Maintenance rights of divorced Muslim women",
+      "Conflict between personal law and secular law",
+      "Uniform Civil Code debate"
+    ],
+    "type": "case_law"
+  },
+  {
+    "id": "case_indra_sawhney",
+    "case_name": "Indra Sawhney v. Union of India",
+    "court": "Supreme Court",
+    "year": 1992,
+    "citation": "AIR 1993 SC 477",
+    "facts": "This case challenged the constitutional validity of reservations for Other Backward Classes (OBCs) in government services as recommended by the Mandal Commission.",
+    "judgment": "The Supreme Court upheld reservations for OBCs but capped the total reservation at 50%. The Court held that the 'creamy layer' (affluent members) among OBCs should be excluded from benefits. It also ruled that reservations cannot be made in promotions for OBCs. This judgment is known as the Mandal Commission case and shaped India's reservation policy.",
+    "legal_issues": [
+      "Validity of OBC reservations",
+      "50% cap on reservations",
+      "Creamy layer exclusion",
+      "Reservations in promotions"
+    ],
+    "type": "case_law"
+  },
+  {
+    "id": "case_naz_foundation",
+    "case_name": "Naz Foundation v. Govt. of NCT of Delhi",
+    "court": "High Court",
+    "year": 2009,
+    "citation": "160 DLT 277",
+    "facts": "Naz Foundation, an NGO, challenged the constitutional validity of Section 377 IPC which criminalized consensual homosexual acts between adults.",
+    "judgment": "The Delhi High Court declared Section 377 unconstitutional insofar as it criminalized consensual sexual acts between adults in private. The Court held that it violated Articles 14, 15, and 21 of the Constitution. However, this decision was later overturned by the Supreme Court in 2013, and ultimately Section 377 was read down by the Supreme Court in Navtej Singh Johar case (2018).",
+    "legal_issues": [
+      "Right to privacy and dignity",
+      "LGBTQ+ rights",
+      "Constitutional validity of Section 377 IPC"
+    ],
+    "type": "case_law"
+  },
+  {
+    "id": "case_nirbhaya",
+    "case_name": "Mukesh & Anr v. State for NCT of Delhi",
+    "court": "Supreme Court",
+    "year": 2017,
+    "citation": "Criminal Appeal No. 607 of 2017",
+    "facts": "This case arose from the brutal gang rape and murder of a young woman in Delhi in December 2012 (Nirbhaya case). Four convicts challenged their death sentence.",
+    "judgment": "The Supreme Court upheld the death sentence for all four convicts, calling it the 'rarest of rare' case. The Court noted the brutality and depravity of the crime. This case led to significant amendments in criminal law through the Criminal Law (Amendment) Act, 2013, which enhanced punishments for sexual offenses and introduced new offenses like stalking and voyeurism.",
+    "legal_issues": [
+      "Death penalty in rarest of rare cases",
+      "Rape and sexual assault laws",
+      "Criminal justice system reforms"
+    ],
+    "type": "case_law"
+  },
+  {
+    "id": "case_keshav_mills",
+    "case_name": "State of Maharashtra v. Keshav Mills",
+    "court": "Supreme Court",
+    "year": 1953,
+    "citation": "AIR 1953 SC 276",
+    "facts": "This case challenged the Bombay Labour Welfare Fund Act which required contributions from employers for worker welfare.",
+    "judgment": "The Supreme Court upheld the Act and established important principles regarding reasonable restrictions under Article 19(6). The judgment clarified that the test of reasonableness should be applied to the law itself, not its application. This case is important for understanding the balance between fundamental rights and legitimate state interests.",
+    "legal_issues": [
+      "Reasonable restrictions on fundamental rights",
+      "State's power to legislate for public welfare",
+      "Labour laws and social security"
+    ],
+    "type": "case_law"
+  }
+]
