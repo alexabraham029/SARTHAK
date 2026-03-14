@@ -18,6 +18,7 @@ const DocumentPage = () => {
   const [dragOver, setDragOver] = useState(false);
   const [typingMessage, setTypingMessage] = useState(null);
   const [isListening, setIsListening] = useState(false);
+  const [speechSupported, setSpeechSupported] = useState(false);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
   const recognitionRef = useRef(null);
@@ -43,15 +44,32 @@ const DocumentPage = () => {
         setInput(transcript);
       };
       recognition.onend = () => setIsListening(false);
-      recognition.onerror = () => setIsListening(false);
+      recognition.onerror = (e) => {
+        console.warn('Speech recognition error:', e.error);
+        setIsListening(false);
+      };
       recognitionRef.current = recognition;
+      setSpeechSupported(true);
     }
   }, []);
 
   const toggleVoice = () => {
     if (!recognitionRef.current) return;
-    if (isListening) recognitionRef.current.stop();
-    else { recognitionRef.current.start(); setIsListening(true); }
+    if (isListening) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+    } else {
+      try {
+        recognitionRef.current.start();
+        setIsListening(true);
+      } catch (e) {
+        recognitionRef.current.stop();
+        setTimeout(() => {
+          recognitionRef.current.start();
+          setIsListening(true);
+        }, 100);
+      }
+    }
   };
 
   // Typewriter
@@ -242,7 +260,7 @@ const DocumentPage = () => {
         {/* Input */}
         <div className={`px-4 py-4 border-t ${dark ? 'border-white/8' : 'border-gray-200'}`}>
           <form onSubmit={handleSendMessage} className="flex gap-2">
-            {recognitionRef.current && (
+            {speechSupported && (
               <button
                 type="button"
                 onClick={toggleVoice}
