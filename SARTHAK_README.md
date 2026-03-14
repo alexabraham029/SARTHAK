@@ -1,8 +1,8 @@
-# KanoonGPT 🇮🇳⚖️
+# SARTHAK 🇮🇳⚖️
 
 **AI-Powered Indian Legal Assistant** - Your intelligent companion for Indian law research and legal query resolution.
 
-KanoonGPT combines the power of OpenAI's GPT-4, Pinecone vector database, and comprehensive Indian legal datasets to provide accurate, contextual answers about Indian laws, case precedents, and legal documents.
+SARTHAK combines the power of OpenAI's GPT-4, Pinecone vector database, and comprehensive Indian legal datasets to provide accurate, contextual answers about Indian laws, case precedents, and legal documents.
 
 ---
 
@@ -331,7 +331,7 @@ curl -X POST "http://localhost:8000/api/documents/query" \
 | `OPENAI_EMBEDDING_MODEL` | Embedding model | `text-embedding-3-small` |
 | `PINECONE_API_KEY` | Pinecone API key | `abc123...` |
 | `PINECONE_ENVIRONMENT` | Pinecone region | `us-east-1` |
-| `PINECONE_INDEX_NAME` | Index name | `kanoongpt-laws` |
+| `PINECONE_INDEX_NAME` | Index name | `sarthak-laws` |
 | `TOP_K_RESULTS` | Results per query | `5` |
 | `MAX_HISTORY_LENGTH` | Chat history size | `10` |
 
