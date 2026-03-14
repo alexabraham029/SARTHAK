@@ -1,6 +1,6 @@
-# KanoonGPT Frontend
+# SARTHAK Frontend
 
-Modern React frontend for KanoonGPT - AI Legal Assistant for Indian Law.
+Modern React frontend for SARTHAK - AI Legal Assistant for Indian Law.
 
 ## Features
 
