@@ -24,6 +24,7 @@ const ChatPage = () => {
   const [sources, setSources] = useState([]);
   const [isListening, setIsListening] = useState(false);
   const [typingMessage, setTypingMessage] = useState(null);
+  const [speechSupported, setSpeechSupported] = useState(false);
   const messagesEndRef = useRef(null);
   const recognitionRef = useRef(null);
 
@@ -52,8 +53,12 @@ const ChatPage = () => {
       };
 
       recognition.onend = () => setIsListening(false);
-      recognition.onerror = () => setIsListening(false);
+      recognition.onerror = (e) => {
+        console.warn('Speech recognition error:', e.error);
+        setIsListening(false);
+      };
       recognitionRef.current = recognition;
+      setSpeechSupported(true);
     }
   }, []);
 
@@ -61,9 +66,19 @@ const ChatPage = () => {
     if (!recognitionRef.current) return;
     if (isListening) {
       recognitionRef.current.stop();
+      setIsListening(false);
     } else {
-      recognitionRef.current.start();
-      setIsListening(true);
+      try {
+        recognitionRef.current.start();
+        setIsListening(true);
+      } catch (e) {
+        // Already started — abort and restart
+        recognitionRef.current.stop();
+        setTimeout(() => {
+          recognitionRef.current.start();
+          setIsListening(true);
+        }, 100);
+      }
     }
   };
 
@@ -203,7 +218,7 @@ const ChatPage = () => {
         {/* Input Area */}
         <div className={`px-4 py-4 border-t ${dark ? 'border-white/8' : 'border-gray-200'}`}>
           <form onSubmit={handleSendMessage} className="flex gap-2">
-            {recognitionRef.current && (
+            {speechSupported && (
               <button
                 type="button"
                 onClick={toggleVoice}
