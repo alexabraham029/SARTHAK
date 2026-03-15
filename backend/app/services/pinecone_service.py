@@ -143,7 +143,14 @@ class PineconeService:
         vectors = []
         for case in cases:
             # Create combined text for embedding
-            combined_text = f"{case.case_name} {case.facts or ''} {case.judgment}"
+            combined_text = " ".join(filter(None, [
+                case.case_name,
+                case.petitioner,
+                case.respondent,
+                case.facts or '',
+                case.judgment,
+                case.judge,
+            ]))
             
             # Generate embedding
             embedding = self.generate_embedding(combined_text)
@@ -163,6 +170,12 @@ class PineconeService:
                 metadata["citation"] = case.citation
             if case.facts:
                 metadata["facts"] = case.facts[:500]
+            if case.judge:
+                metadata["judge"] = case.judge[:300]
+            if case.petitioner:
+                metadata["petitioner"] = case.petitioner[:250]
+            if case.respondent:
+                metadata["respondent"] = case.respondent[:250]
             
             vectors.append({
                 "id": case.id,

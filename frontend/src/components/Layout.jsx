@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Scale, MessageSquare, Search, FileText, Home, Sun, Moon, Menu, X } from 'lucide-react';
+import { UserButton } from '@clerk/clerk-react';
 
 // Theme context
 const ThemeContext = createContext();
@@ -80,8 +81,19 @@ const Layout = () => {
             ))}
           </nav>
 
-          {/* Theme Toggle */}
-          <div className="p-4">
+          {/* User & Theme */}
+          <div className="p-4 space-y-3">
+            <div className={`flex items-center gap-3 px-4 py-3 rounded-xl ${theme === 'dark' ? 'bg-white/[0.04]' : 'bg-gray-100/60'}`}>
+              <UserButton
+                afterSignOutUrl="/sign-in"
+                appearance={{
+                  elements: {
+                    avatarBox: 'w-8 h-8 rounded-lg',
+                  },
+                }}
+              />
+              <span className={`text-sm font-medium ${theme === 'dark' ? 'text-white/60' : 'text-gray-600'}`}>Account</span>
+            </div>
             <button
               onClick={toggleTheme}
               className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300
@@ -106,6 +118,14 @@ const Layout = () => {
               <span className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Sarthak</span>
             </div>
             <div className="flex items-center gap-2">
+              <UserButton
+                afterSignOutUrl="/sign-in"
+                appearance={{
+                  elements: {
+                    avatarBox: 'w-7 h-7 rounded-lg',
+                  },
+                }}
+              />
               <button onClick={toggleTheme} className={`p-2 rounded-lg ${theme === 'dark' ? 'text-white/60' : 'text-gray-500'}`}>
                 {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
               </button>

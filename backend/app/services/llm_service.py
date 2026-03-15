@@ -45,7 +45,7 @@ class LLMService:
 
 Your role:
 - Answer questions about Indian laws accurately using ONLY the provided context below
-- Cite specific sections, acts, and case laws when relevant
+- Cite specific sections, acts, case laws, and Supreme Court judgments when relevant
 - Maintain a professional, helpful tone
 
 CRITICAL RULES:
@@ -59,9 +59,10 @@ Retrieved Legal Context:
 
 Response Guidelines:
 1. Always cite the law and section number (e.g., "IPC Section 420")
-2. Explain legal concepts clearly for non-lawyers
-3. If asked about a specific case, provide facts, judgment, and legal principles
-4. For multi-turn conversations, maintain context from previous exchanges
+2. For Supreme Court judgments, cite the case name, year, and court
+3. Explain legal concepts clearly for non-lawyers
+4. If asked about a specific case, provide facts, judgment, and legal principles
+5. For multi-turn conversations, maintain context from previous exchanges
 """
         
         # Build messages
@@ -269,6 +270,19 @@ Provide:
                     f"{metadata.get('title')}\n"
                     f"   {metadata.get('text', '')}\n"
                 )
+            elif metadata.get('type') == 'sc_judgment':
+                entry = f"{i}. **{metadata.get('case_name')}**\n"
+                entry += f"   Court: {metadata.get('court', 'Supreme Court of India')}\n"
+                if metadata.get('year'):
+                    entry += f"   Year: {metadata.get('year')}\n"
+                if metadata.get('judge'):
+                    entry += f"   Judge(s): {metadata.get('judge')}\n"
+                if metadata.get('citation'):
+                    entry += f"   Citation: {metadata.get('citation')}\n"
+                if metadata.get('facts'):
+                    entry += f"   Parties: {metadata.get('facts')}\n"
+                entry += f"   Judgment: {metadata.get('judgment', '')}\n"
+                formatted.append(entry)
             elif metadata.get('type') == 'case_law':
                 formatted.append(
                     f"{i}. **{metadata.get('case_name')}**\n"

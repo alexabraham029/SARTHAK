@@ -36,3 +36,7 @@ docx2txt>=0.8
 # Utilities
 tiktoken>=0.5.0
 tenacity>=8.2.0
+
+# Kaggle Dataset Download
+kagglehub>=1.0.0
+pyarrow>=15.0.0

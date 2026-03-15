@@ -63,6 +63,9 @@ async def summarize_case(request: CaseSummaryRequest):
             citation=metadata.get('citation'),
             facts=metadata.get('facts'),
             judgment=metadata.get('judgment', ''),
+            judge=metadata.get('judge'),
+            petitioner=metadata.get('petitioner'),
+            respondent=metadata.get('respondent'),
             score=case_match.get('score')
         )
         
@@ -116,6 +119,9 @@ async def find_similar_cases(request: CaseSimilarityRequest):
                 citation=metadata.get('citation'),
                 facts=metadata.get('facts'),
                 judgment=metadata.get('judgment', ''),
+                judge=metadata.get('judge'),
+                petitioner=metadata.get('petitioner'),
+                respondent=metadata.get('respondent'),
                 score=result.get('score')
             ))
         

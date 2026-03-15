@@ -31,7 +31,33 @@ class CaseLaw(BaseModel):
     facts: Optional[str] = None
     judgment: str
     legal_issues: Optional[List[str]] = None
+    judge: Optional[str] = None
+    petitioner: Optional[str] = None
+    respondent: Optional[str] = None
     score: Optional[float] = None
+
+
+class LegalSource(BaseModel):
+    """Unified legal source returned to chat clients"""
+    id: str
+    type: str
+    score: Optional[float] = None
+    law: Optional[str] = None
+    law_name: Optional[str] = None
+    chapter: Optional[str] = None
+    chapter_title: Optional[str] = None
+    section: Optional[str] = None
+    title: Optional[str] = None
+    text: Optional[str] = None
+    case_name: Optional[str] = None
+    court: Optional[str] = None
+    year: Optional[int] = None
+    citation: Optional[str] = None
+    facts: Optional[str] = None
+    judgment: Optional[str] = None
+    judge: Optional[str] = None
+    petitioner: Optional[str] = None
+    respondent: Optional[str] = None
 
 
 class ChatMessage(BaseModel):
@@ -52,7 +78,7 @@ class ChatResponse(BaseModel):
     """Chat response model"""
     session_id: str
     message: str
-    sources: List[LawSection] = []
+    sources: List[LegalSource] = []
     timestamp: datetime = Field(default_factory=datetime.now)
 
 
