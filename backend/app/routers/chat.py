@@ -11,6 +11,19 @@ router = APIRouter(prefix="/api/chat", tags=["Legal Chat"])
 settings = get_settings()
 
 
+def _result_score(result):
+    return result.get('score') or 0
+
+
+def _result_metadata(result):
+    return result.get('metadata', {})
+
+
+def _is_case_result(result):
+    source_type = _result_metadata(result).get('type', 'law_section')
+    return source_type in {'case_law', 'sc_judgment'}
+
+
 @router.post("/", response_model=ChatResponse)
 async def chat(request: ChatRequest):
     """
@@ -29,19 +42,71 @@ async def chat(request: ChatRequest):
         session_manager.add_message(request.session_id, "user", request.message)
         
         # Search both laws and case-law knowledge bases
+        total_k = settings.TOP_K_RESULTS
+        min_law_results = min(4, total_k)
+        min_case_results = min(6, max(0, total_k - min_law_results))
+        recent_case_ids = set(session_manager.get_recent_case_ids(request.session_id))
+
         law_results = pinecone_service.search_laws(
             query=request.message,
-            top_k=settings.TOP_K_RESULTS
+            top_k=total_k
         )
         case_results = pinecone_service.search_cases(
             query=request.message,
-            top_k=max(3, settings.TOP_K_RESULTS // 2)
+            top_k=max(total_k * 3, min_case_results + 6)
         )
-        search_results = sorted(
-            [*law_results, *case_results],
-            key=lambda result: result.get('score') or 0,
+
+        sorted_laws = list(law_results)
+
+        sorted_cases = sorted(
+            case_results,
+            key=_result_score,
             reverse=True
-        )[:settings.TOP_K_RESULTS]
+        )
+
+        selected_laws = sorted_laws[:min_law_results]
+
+        fresh_cases = [
+            result for result in sorted_cases
+            if _result_metadata(result).get('id') not in recent_case_ids
+        ]
+
+        selected_cases = fresh_cases[:min_case_results]
+        if len(selected_cases) < min_case_results:
+            fallback_cases = [
+                result for result in sorted_cases
+                if _result_metadata(result).get('id') not in {
+                    _result_metadata(selected).get('id') for selected in selected_cases
+                }
+            ]
+            selected_cases.extend(fallback_cases[:max(0, min_case_results - len(selected_cases))])
+
+        selected_ids = {
+            _result_metadata(result).get('id')
+            for result in [*selected_laws, *selected_cases]
+        }
+
+        remaining_slots = max(0, total_k - len(selected_laws) - len(selected_cases))
+        remaining_pool = sorted(
+            [
+                *sorted_laws,
+                *[
+                    result for result in sorted_cases
+                    if _result_metadata(result).get('id') not in selected_ids
+                ],
+            ],
+            key=_result_score,
+            reverse=True
+        )
+
+        search_results = [*selected_laws, *selected_cases, *remaining_pool[:remaining_slots]]
+
+        shown_case_ids = [
+            _result_metadata(result).get('id')
+            for result in search_results
+            if _is_case_result(result)
+        ]
+        session_manager.remember_case_ids(request.session_id, shown_case_ids)
         
         # Get chat history for context
         chat_history = []
@@ -61,7 +126,7 @@ async def chat(request: ChatRequest):
         # Format sources
         sources = []
         for result in search_results:
-            metadata = result.get('metadata', {})
+            metadata = _result_metadata(result)
             source_type = metadata.get('type', 'law_section')
 
             if source_type in {'case_law', 'sc_judgment'}:
