@@ -1,8 +1,86 @@
-import React from 'react';
-import { SignUp } from '@clerk/clerk-react';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useClerk, useSignUp } from '@clerk/clerk-react';
 import { Scale } from 'lucide-react';
 
 const SignUpPage = () => {
+  const navigate = useNavigate();
+  const { setActive } = useClerk();
+  const { isLoaded, signUp } = useSignUp();
+  const [emailAddress, setEmailAddress] = useState('');
+  const [password, setPassword] = useState('');
+  const [verificationCode, setVerificationCode] = useState('');
+  const [pendingVerification, setPendingVerification] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
+
+  const onSignUp = async (event) => {
+    event.preventDefault();
+    if (!isLoaded || isSubmitting) return;
+
+    try {
+      setError('');
+      setIsSubmitting(true);
+
+      await signUp.create({
+        emailAddress,
+        password,
+      });
+
+      await signUp.prepareEmailAddressVerification({
+        strategy: 'email_code',
+      });
+
+      setPendingVerification(true);
+    } catch (err) {
+      setError(err?.errors?.[0]?.message || 'Unable to create account. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const onVerify = async (event) => {
+    event.preventDefault();
+    if (!isLoaded || isSubmitting) return;
+
+    try {
+      setError('');
+      setIsSubmitting(true);
+
+      const result = await signUp.attemptEmailAddressVerification({
+        code: verificationCode.trim(),
+      });
+
+      if (result.status === 'complete' && result.createdSessionId) {
+        await setActive({ session: result.createdSessionId });
+        navigate('/', { replace: true });
+        return;
+      }
+
+      if (result.status === 'complete' && !result.createdSessionId) {
+        setError('Email verified, but no session was created. Please sign in once.');
+        navigate('/sign-in', { replace: true });
+        return;
+      }
+
+      if (result.status === 'missing_requirements') {
+        const missingFields = Array.isArray(result.missingFields) ? result.missingFields.join(', ') : null;
+        setError(
+          missingFields
+            ? `Email verified. Please complete required fields: ${missingFields}.`
+            : 'Email verified, but additional account details are required in Clerk settings.',
+        );
+        return;
+      }
+
+      setError('Verification succeeded but account setup is incomplete. Please try signing in.');
+    } catch (err) {
+      setError(err?.errors?.[0]?.message || 'Invalid verification code. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="app-background min-h-screen flex items-center justify-center px-4">
       <div className="flex flex-col items-center gap-8">
@@ -19,58 +97,83 @@ const SignUpPage = () => {
           </div>
         </div>
 
-        {/* Clerk Sign-Up */}
-        <SignUp
-          routing="path"
-          path="/sign-up"
-          signInUrl="/sign-in"
-          afterSignUpUrl="/"
-          appearance={{
-            elements: {
-              rootBox: 'w-full max-w-md',
-              card: 'glass-card !bg-[rgba(255,255,255,0.06)] !border-[rgba(255,255,255,0.1)] !shadow-[0_8px_32px_rgba(0,0,0,0.3)] !rounded-2xl',
-              headerTitle: '!text-white !font-bold',
-              headerSubtitle: '!text-white/50',
-              socialButtonsBlockButton:
-                '!bg-[rgba(255,255,255,0.08)] !border-[rgba(255,255,255,0.12)] !text-white hover:!bg-[rgba(255,255,255,0.14)] !rounded-xl !transition-all',
-              socialButtonsBlockButtonText: '!text-white/80',
-              dividerLine: '!bg-white/10',
-              dividerText: '!text-white/30',
-              formFieldLabel: '!text-white/60',
-              formFieldInput:
-                '!bg-[rgba(255,255,255,0.06)] !border-[rgba(255,255,255,0.1)] !text-white !rounded-xl focus:!border-amber-500/50 focus:!shadow-[0_0_20px_rgba(245,158,11,0.15)] !placeholder-white/35',
-              formButtonPrimary:
-                '!bg-gradient-to-r !from-amber-500 !to-amber-600 hover:!shadow-[0_6px_25px_rgba(245,158,11,0.5)] !rounded-xl !font-semibold !transition-all !border-none',
-              footerActionLink: '!text-amber-400 hover:!text-amber-300',
-              footerActionText: '!text-white/40',
-              identityPreviewEditButton: '!text-amber-400',
-              formFieldAction: '!text-amber-400',
-              otpCodeFieldInput:
-                '!bg-[rgba(255,255,255,0.06)] !border-[rgba(255,255,255,0.1)] !text-white !rounded-lg',
-              phoneInputBox:
-                '!bg-[rgba(255,255,255,0.06)] !border-[rgba(255,255,255,0.1)] !rounded-xl',
-              formFieldPhoneInput: '!text-white',
-              selectButton:
-                '!bg-[rgba(255,255,255,0.08)] !border-[rgba(255,255,255,0.1)] !text-white/70 !rounded-lg',
-              selectSearchInput:
-                '!bg-[rgba(255,255,255,0.06)] !border-[rgba(255,255,255,0.1)] !text-white !rounded-lg',
-              selectOptionsContainer:
-                '!bg-[rgba(20,20,50,0.95)] !border-[rgba(255,255,255,0.1)] !rounded-xl',
-              selectOption: '!text-white/70 hover:!bg-white/10',
-              selectOption__active: '!text-amber-400',
-              alternativeMethodsBlockButton:
-                '!text-white/60 !border-[rgba(255,255,255,0.1)] hover:!bg-[rgba(255,255,255,0.08)] !rounded-xl',
-              alertText: '!text-white/70',
-              formFieldErrorText: '!text-red-400',
-              formFieldSuccessText: '!text-emerald-400',
-              identityPreviewText: '!text-white/70',
-              formHeaderTitle: '!text-white',
-              formHeaderSubtitle: '!text-white/50',
-              backLink: '!text-amber-400 hover:!text-amber-300',
-              internal: '',
-            },
-          }}
-        />
+        <div className="w-full max-w-md glass-card bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)] shadow-[0_8px_32px_rgba(0,0,0,0.3)] rounded-2xl p-8">
+          <h2 className="text-white text-2xl font-bold text-center">
+            {pendingVerification ? 'Verify your email' : 'Create account'}
+          </h2>
+          <p className="text-white/50 text-sm text-center mt-1">
+            {pendingVerification ? 'Enter the code sent to your email' : 'Sign up with email and password'}
+          </p>
+
+          {!pendingVerification ? (
+            <form onSubmit={onSignUp} className="mt-6 space-y-4">
+              <div>
+                <label className="block text-white/60 text-sm mb-2">Email</label>
+                <input
+                  type="email"
+                  value={emailAddress}
+                  onChange={(event) => setEmailAddress(event.target.value)}
+                  required
+                  className="w-full px-4 py-3 bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)] text-white rounded-xl focus:outline-none focus:border-amber-500/50 focus:shadow-[0_0_20px_rgba(245,158,11,0.15)] placeholder-white/35"
+                  placeholder="you@example.com"
+                />
+              </div>
+
+              <div>
+                <label className="block text-white/60 text-sm mb-2">Password</label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  required
+                  className="w-full px-4 py-3 bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)] text-white rounded-xl focus:outline-none focus:border-amber-500/50 focus:shadow-[0_0_20px_rgba(245,158,11,0.15)] placeholder-white/35"
+                  placeholder="Create a password"
+                />
+              </div>
+
+              {error ? <p className="text-red-400 text-sm">{error}</p> : null}
+
+              <button
+                type="submit"
+                disabled={!isLoaded || isSubmitting}
+                className="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:shadow-[0_6px_25px_rgba(245,158,11,0.5)] rounded-xl font-semibold text-white transition-all border-none disabled:opacity-70 disabled:cursor-not-allowed"
+              >
+                {isSubmitting ? 'Creating account...' : 'Create account'}
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={onVerify} className="mt-6 space-y-4">
+              <div>
+                <label className="block text-white/60 text-sm mb-2">Verification code</label>
+                <input
+                  type="text"
+                  value={verificationCode}
+                  onChange={(event) => setVerificationCode(event.target.value)}
+                  required
+                  className="w-full px-4 py-3 bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)] text-white rounded-xl focus:outline-none focus:border-amber-500/50 focus:shadow-[0_0_20px_rgba(245,158,11,0.15)] placeholder-white/35"
+                  placeholder="Enter code"
+                />
+              </div>
+
+              {error ? <p className="text-red-400 text-sm">{error}</p> : null}
+
+              <button
+                type="submit"
+                disabled={!isLoaded || isSubmitting}
+                className="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:shadow-[0_6px_25px_rgba(245,158,11,0.5)] rounded-xl font-semibold text-white transition-all border-none disabled:opacity-70 disabled:cursor-not-allowed"
+              >
+                {isSubmitting ? 'Verifying...' : 'Verify and continue'}
+              </button>
+            </form>
+          )}
+
+          <p className="text-white/40 text-sm text-center mt-5">
+            Already have an account?{' '}
+            <Link to="/sign-in" className="text-amber-400 hover:text-amber-300">
+              Sign in
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );
