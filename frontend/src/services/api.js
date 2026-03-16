@@ -15,11 +15,12 @@ export const generateSessionId = () => {
 };
 
 // Legal Chat API
-export const sendChatMessage = async (sessionId, message) => {
+export const sendChatMessage = async (sessionId, message, webSearch = false) => {
   const response = await api.post('/api/chat/', {
     session_id: sessionId,
     message: message,
     include_history: true,
+    web_search: webSearch,
   });
   return response.data;
 };

@@ -58,6 +58,8 @@ class LegalSource(BaseModel):
     judge: Optional[str] = None
     petitioner: Optional[str] = None
     respondent: Optional[str] = None
+    url: Optional[str] = None
+    source: Optional[str] = None
 
 
 class ChatMessage(BaseModel):
@@ -72,6 +74,7 @@ class ChatRequest(BaseModel):
     session_id: str = Field(..., description="Unique session identifier")
     message: str = Field(..., description="User query")
     include_history: bool = Field(default=True, description="Include chat history")
+    web_search: bool = Field(default=False, description="Enable web search augmentation")
 
 
 class ChatResponse(BaseModel):

@@ -1,12 +1,13 @@
 import React from 'react';
-import { Book, Scale } from 'lucide-react';
+import { Book, Scale, Globe } from 'lucide-react';
 import { useTheme } from './Layout';
 
 const SourceCard = ({ source }) => {
   const { theme } = useTheme();
   const dark = theme === 'dark';
   const isCaseSource = source.type === 'case_law' || source.type === 'sc_judgment';
-  const Icon = isCaseSource ? Scale : Book;
+  const isWebSource = source.type === 'web_result';
+  const Icon = isWebSource ? Globe : (isCaseSource ? Scale : Book);
   const scorePercentage = source.score ? Math.min(source.score * 100, 100) : null;
 
   return (
@@ -22,13 +23,27 @@ const SourceCard = ({ source }) => {
           <div className={`text-xs font-bold ${dark ? 'text-white/85' : 'text-gray-900'}`}>
             {isCaseSource
               ? source.case_name || 'Case Law'
-              : `${source.law} Section ${source.section}`}
+              : isWebSource
+                ? source.title || 'Web result'
+                : `${source.law} Section ${source.section}`}
           </div>
           <div className={`text-[11px] mt-1 ${dark ? 'text-white/45' : 'text-gray-500'}`}>
             {isCaseSource
               ? [source.court, source.year].filter(Boolean).join(' • ') || source.citation || 'Judgment source'
-              : source.title}
+              : isWebSource
+                ? source.source || 'Web source'
+                : source.title}
           </div>
+          {isWebSource && source.url && (
+            <a
+              href={source.url}
+              target="_blank"
+              rel="noreferrer"
+              className={`text-[11px] mt-2 inline-block break-all ${dark ? 'text-amber-300 hover:text-amber-200' : 'text-amber-700 hover:text-amber-800'}`}
+            >
+              {source.url}
+            </a>
+          )}
           {isCaseSource && source.citation && (
             <div className={`text-[11px] mt-2 ${dark ? 'text-white/45' : 'text-gray-500'}`}>
               {source.citation}

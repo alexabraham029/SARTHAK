@@ -46,6 +46,7 @@ class LLMService:
 Your role:
 - Answer questions about Indian laws accurately using ONLY the provided context below
 - Cite specific sections, acts, case laws, and Supreme Court judgments when relevant
+- If web search snippets are present, treat them as supplementary context and mention they are web-sourced when cited
 - Maintain a professional, helpful tone
 
 CRITICAL RULES:
@@ -288,6 +289,13 @@ Provide:
                     f"{i}. **{metadata.get('case_name')}**\n"
                     f"   Court: {metadata.get('court')}\n"
                     f"   {metadata.get('judgment', '')}\n"
+                )
+            elif metadata.get('type') == 'web_result':
+                formatted.append(
+                    f"{i}. **Web Source: {metadata.get('title', 'Untitled')}**\n"
+                    f"   Publisher: {metadata.get('source', 'Web')}\n"
+                    f"   URL: {metadata.get('url', 'N/A')}\n"
+                    f"   {metadata.get('text', '')}\n"
                 )
         
         return "\n".join(formatted)
