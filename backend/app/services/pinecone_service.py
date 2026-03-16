@@ -5,6 +5,7 @@ Uses FREE sentence-transformers for embeddings
 """
 
 from typing import List, Dict, Any, Optional
+import re
 from sentence_transformers import SentenceTransformer
 from pinecone import Pinecone, ServerlessSpec
 from ..core.config import get_settings
@@ -143,7 +144,14 @@ class PineconeService:
         vectors = []
         for case in cases:
             # Create combined text for embedding
-            combined_text = f"{case.case_name} {case.facts or ''} {case.judgment}"
+            combined_text = " ".join(filter(None, [
+                case.case_name,
+                case.petitioner,
+                case.respondent,
+                case.facts or '',
+                case.judgment,
+                case.judge,
+            ]))
             
             # Generate embedding
             embedding = self.generate_embedding(combined_text)
@@ -163,6 +171,12 @@ class PineconeService:
                 metadata["citation"] = case.citation
             if case.facts:
                 metadata["facts"] = case.facts[:500]
+            if case.judge:
+                metadata["judge"] = case.judge[:300]
+            if case.petitioner:
+                metadata["petitioner"] = case.petitioner[:250]
+            if case.respondent:
+                metadata["respondent"] = case.respondent[:250]
             
             vectors.append({
                 "id": case.id,
@@ -199,49 +213,133 @@ class PineconeService:
         """
         if not self.index:
             raise Exception("Index not initialized. Call initialize_index() first.")
-        
-        # Check if query contains specific section number (e.g., "IPC 302", "Section 420", "CPC Section 132")
-        import re
-        section_pattern = r'\b(IPC|CrPC|CPC|IEA|MVA|NIA|IDA|HMA)\s+(?:Section\s+)?(\d+[A-Z]?)\b'
-        match = re.search(section_pattern, query, re.IGNORECASE)
-        
-        if match:
-            law_abbr = match.group(1).upper()
-            section_num = match.group(2)
-            
-            # Try exact section lookup first
-            filter_dict = {
-                "law": {"$eq": law_abbr},
-                "section": {"$eq": section_num}
-            }
-            
-            results = self.index.query(
-                vector=self.generate_embedding(query),
-                top_k=top_k,
-                include_metadata=True,
-                namespace=namespace,
-                filter=filter_dict
-            )
-            
-            # If exact match found, return it along with semantic results
-            if results.matches:
-                print(f"[OK] Found exact match for {law_abbr} Section {section_num}")
-                # Also get semantic results for context
-                semantic_results = self.index.query(
-                    vector=self.generate_embedding(query),
-                    top_k=top_k - len(results.matches),
+
+        law_aliases = {
+            "IPC": "IPC",
+            "INDIAN PENAL CODE": "IPC",
+            "CRPC": "CRPC",
+            "CODE OF CRIMINAL PROCEDURE": "CRPC",
+            "CPC": "CPC",
+            "CODE OF CIVIL PROCEDURE": "CPC",
+            "IEA": "IEA",
+            "INDIAN EVIDENCE ACT": "IEA",
+            "MVA": "MVA",
+            "MOTOR VEHICLES ACT": "MVA",
+            "NIA": "NIA",
+            "NATIONAL INVESTIGATION AGENCY ACT": "NIA",
+            "IDA": "IDA",
+            "INDUSTRIAL DISPUTES ACT": "IDA",
+            "HMA": "HMA",
+            "HINDU MARRIAGE ACT": "HMA",
+        }
+
+        law_token_pattern = "|".join(sorted((re.escape(alias) for alias in law_aliases.keys()), key=len, reverse=True))
+        section_token_pattern = r"(\d+[A-Za-z]?)"
+
+        patterns = [
+            rf"\b({law_token_pattern})\s*(?:section|sec\.?|s\.?)*\s*{section_token_pattern}\b",
+            rf"\b(?:section|sec\.?|s\.?)\s*{section_token_pattern}\s*(?:of\s+)?({law_token_pattern})\b",
+            rf"\b{section_token_pattern}\s*({law_token_pattern})\b",
+        ]
+
+        exact_filters = []
+        for pattern in patterns:
+            for match in re.finditer(pattern, query, re.IGNORECASE):
+                raw_first = match.group(1).upper().strip()
+                raw_second = match.group(2).upper().strip()
+
+                if raw_first in law_aliases:
+                    law_abbr = law_aliases[raw_first]
+                    section_num = raw_second
+                else:
+                    law_abbr = law_aliases.get(raw_second)
+                    section_num = raw_first
+
+                if not law_abbr:
+                    continue
+
+                exact_filters.append({
+                    "law": {"$eq": law_abbr},
+                    "section": {"$eq": section_num.upper()}
+                })
+
+        # De-duplicate exact filters while preserving order
+        dedup_filters = []
+        seen_keys = set()
+        for item in exact_filters:
+            key = (item["law"]["$eq"], item["section"]["$eq"])
+            if key in seen_keys:
+                continue
+            seen_keys.add(key)
+            dedup_filters.append(item)
+
+        query_embedding = self.generate_embedding(query)
+
+        if dedup_filters:
+            exact_matches = []
+            seen_ids = set()
+
+            for filter_dict in dedup_filters:
+                results = self.index.query(
+                    vector=query_embedding,
+                    top_k=min(3, top_k),
                     include_metadata=True,
                     namespace=namespace,
-                    filter={"law": {"$in": law_filter}} if law_filter else None
+                    filter=filter_dict
                 )
-                # Combine exact match first, then semantic results
-                all_matches = list(results.matches) + list(semantic_results.matches)
-                results.matches = all_matches[:top_k]
-                return results.matches
+
+                for match in results.matches:
+                    match_id = getattr(match, 'id', None)
+                    if not match_id or match_id in seen_ids:
+                        continue
+                    exact_matches.append(match)
+                    seen_ids.add(match_id)
+
+            if exact_matches:
+                preview = ", ".join([f"{f['law']['$eq']} Section {f['section']['$eq']}" for f in dedup_filters])
+                print(f"[OK] Found exact law-section match(es): {preview}")
+
+                if len(exact_matches) >= top_k:
+                    return exact_matches[:top_k]
+
+                exact_laws = list({
+                    filter_item["law"]["$eq"]
+                    for filter_item in dedup_filters
+                })
+
+                semantic_filter = None
+                if law_filter and exact_laws:
+                    allowed_laws = [law for law in exact_laws if law in law_filter]
+                    if allowed_laws:
+                        semantic_filter = {"law": {"$in": allowed_laws}}
+                    else:
+                        semantic_filter = {"law": {"$in": law_filter}}
+                elif exact_laws:
+                    semantic_filter = {"law": {"$in": exact_laws}}
+                elif law_filter:
+                    semantic_filter = {"law": {"$in": law_filter}}
+
+                semantic_results = self.index.query(
+                    vector=query_embedding,
+                    top_k=top_k,
+                    include_metadata=True,
+                    namespace=namespace,
+                    filter=semantic_filter
+                )
+
+                merged = list(exact_matches)
+                exact_ids = {getattr(match, 'id', None) for match in exact_matches}
+                for match in semantic_results.matches:
+                    match_id = getattr(match, 'id', None)
+                    if match_id in exact_ids:
+                        continue
+                    merged.append(match)
+                    if len(merged) >= top_k:
+                        break
+
+                return merged[:top_k]
         
         # Regular semantic search
-        query_embedding = self.generate_embedding(query)
-        
         # Build filter
         filter_dict = None
         if law_filter:

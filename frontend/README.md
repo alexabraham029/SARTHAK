@@ -27,7 +27,21 @@ npm run dev
 
 The app will run at **http://localhost:3000**
 
-### 3. Make sure Backend is Running
+### 3. Configure Authentication (Clerk)
+
+Create `frontend/.env`:
+
+```bash
+VITE_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
+```
+
+In the Clerk Dashboard:
+
+- Enable **Google** under **User & Authentication → Social Connections**
+- Add OAuth redirect URL: `http://localhost:3000/sso-callback`
+- Add app URL(s): `http://localhost:3000` (and your deployed URL if needed)
+
+### 4. Make sure Backend is Running
 
 The backend should be running at **http://localhost:8000**
 

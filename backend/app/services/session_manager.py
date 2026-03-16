@@ -25,6 +25,7 @@ class SessionManager:
         # Use TTLCache for automatic session expiry
         self.sessions: TTLCache = TTLCache(maxsize=1000, ttl=session_timeout)
         self.document_sessions: TTLCache = TTLCache(maxsize=1000, ttl=session_timeout)
+        self.recent_case_ids: TTLCache = TTLCache(maxsize=1000, ttl=session_timeout)
     
     def get_history(self, session_id: str) -> List[ChatMessage]:
         """Get chat history for a session"""
@@ -53,6 +54,10 @@ class SessionManager:
         """Clear a specific session"""
         if session_id in self.sessions:
             del self.sessions[session_id]
+        if session_id in self.document_sessions:
+            del self.document_sessions[session_id]
+        if session_id in self.recent_case_ids:
+            del self.recent_case_ids[session_id]
     
     def get_session_count(self) -> int:
         """Get number of active sessions"""
@@ -86,6 +91,24 @@ class SessionManager:
         if session_id in self.document_sessions:
             return list(self.document_sessions[session_id].keys())
         return []
+
+    def get_recent_case_ids(self, session_id: str) -> List[str]:
+        """Get recently shown case IDs for a session"""
+        return self.recent_case_ids.get(session_id, [])
+
+    def remember_case_ids(self, session_id: str, case_ids: List[str], max_recent: int = 30):
+        """Remember recently shown case IDs to reduce repetition"""
+        existing = self.recent_case_ids.get(session_id, [])
+        merged = [*existing]
+
+        for case_id in case_ids:
+            if case_id and case_id not in merged:
+                merged.append(case_id)
+
+        if len(merged) > max_recent:
+            merged = merged[-max_recent:]
+
+        self.recent_case_ids[session_id] = merged
 
 
 # Global session manager instance
