@@ -4,7 +4,7 @@ Chat Router - Feature 1: Legal Chat (Core Q&A)
 
 from fastapi import APIRouter, HTTPException
 from ..models.schemas import ChatRequest, ChatResponse, LegalSource
-from ..services import session_manager, pinecone_service, llm_service
+from ..services import session_manager, pinecone_service, llm_service, web_search_service
 from ..core.config import get_settings
 
 router = APIRouter(prefix="/api/chat", tags=["Legal Chat"])
@@ -101,6 +101,26 @@ async def chat(request: ChatRequest):
 
         search_results = [*selected_laws, *selected_cases, *remaining_pool[:remaining_slots]]
 
+        if request.web_search:
+            web_results = web_search_service.search(
+                query=request.message,
+                max_results=settings.WEB_SEARCH_MAX_RESULTS
+            )
+            for index, web_item in enumerate(web_results):
+                search_results.append(
+                    {
+                        "score": max(0.5, 0.9 - (index * 0.05)),
+                        "metadata": {
+                            "id": f"web_{request.session_id}_{index}",
+                            "type": "web_result",
+                            "title": web_item.get("title", "Web result"),
+                            "text": web_item.get("text", ""),
+                            "url": web_item.get("url"),
+                            "source": web_item.get("source", "Web"),
+                        },
+                    }
+                )
+
         shown_case_ids = [
             _result_metadata(result).get('id')
             for result in search_results
@@ -142,6 +162,16 @@ async def chat(request: ChatRequest):
                     judge=metadata.get('judge'),
                     petitioner=metadata.get('petitioner'),
                     respondent=metadata.get('respondent'),
+                    score=result.get('score')
+                ))
+            elif source_type == 'web_result':
+                sources.append(LegalSource(
+                    id=metadata.get('id', ''),
+                    type=source_type,
+                    title=metadata.get('title', ''),
+                    text=metadata.get('text', ''),
+                    url=metadata.get('url'),
+                    source=metadata.get('source', 'Web'),
                     score=result.get('score')
                 ))
             else:

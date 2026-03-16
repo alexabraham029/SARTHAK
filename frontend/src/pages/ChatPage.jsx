@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Scale, Send, Trash2, Mic, MicOff, Download } from 'lucide-react';
+import { Scale, Send, Trash2, Mic, MicOff, Download, Globe } from 'lucide-react';
 import ChatMessage from '../components/ChatMessage';
 import SourcesPanel from '../components/SourcesPanel';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -22,6 +22,7 @@ const ChatPage = () => {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [sources, setSources] = useState([]);
+  const [webSearchEnabled, setWebSearchEnabled] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [typingMessage, setTypingMessage] = useState(null);
   const [speechSupported, setSpeechSupported] = useState(false);
@@ -109,7 +110,7 @@ const ChatPage = () => {
     setLoading(true);
 
     try {
-      const response = await sendChatMessage(sessionId, userMessage);
+      const response = await sendChatMessage(sessionId, userMessage, webSearchEnabled);
       setLoading(false);
       setSources(response.sources || []);
       typeMessage(response.message, (fullText) => {
@@ -163,6 +164,24 @@ const ChatPage = () => {
             </div>
           </div>
           <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setWebSearchEnabled((prev) => !prev)}
+              className={`px-2.5 py-2 rounded-lg text-xs font-medium transition-colors border ${
+                webSearchEnabled
+                  ? dark
+                    ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                    : 'bg-amber-100 text-amber-700 border-amber-300'
+                  : dark
+                    ? 'text-white/45 border-white/10 hover:bg-white/5'
+                    : 'text-gray-500 border-gray-200 hover:bg-gray-100'
+              }`}
+              title="Toggle web search"
+            >
+              <span className="inline-flex items-center gap-1.5">
+                <Globe className="w-3.5 h-3.5" />
+                Web
+              </span>
+            </button>
             {messages.length > 0 && (
               <button onClick={exportChat} className={`p-2 rounded-lg transition-colors ${dark ? 'text-white/40 hover:text-white/70 hover:bg-white/5' : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'}`} title="Export chat">
                 <Download className="w-4 h-4" />
@@ -206,7 +225,7 @@ const ChatPage = () => {
               {messages.map((msg, index) => (
                 <ChatMessage key={index} message={msg.content} isUser={msg.role === 'user'} />
               ))}
-              {loading && <LoadingSpinner message="Analyzing legal context..." />}
+              {loading && <LoadingSpinner message={webSearchEnabled ? "Searching web + analyzing legal context..." : "Analyzing legal context..."} />}
               {typingMessage !== null && !loading && (
                 <ChatMessage message={typingMessage} isUser={false} isTyping={true} />
               )}

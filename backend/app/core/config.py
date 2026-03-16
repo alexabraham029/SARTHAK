@@ -3,7 +3,7 @@ Configuration management for Sarthak
 """
 
 from pydantic_settings import BaseSettings
-from typing import List
+from typing import List, Optional
 from functools import lru_cache
 
 
@@ -28,6 +28,10 @@ class Settings(BaseSettings):
     PINECONE_API_KEY: str
     PINECONE_ENVIRONMENT: str = "us-east-1"
     PINECONE_INDEX_NAME: str = "kanoongpt-laws"
+
+    # Web Search (Tavily)
+    TAVILY_API_KEY: Optional[str] = None
+    WEB_SEARCH_MAX_RESULTS: int = 5
     
     # CORS
     CORS_ORIGINS: str = "http://localhost:3000,http://localhost:5173"
