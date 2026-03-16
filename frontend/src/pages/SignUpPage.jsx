@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useClerk, useSignUp } from '@clerk/clerk-react';
-import { Scale } from 'lucide-react';
+import { Chrome, Scale, Sparkles } from 'lucide-react';
 
 const SignUpPage = () => {
   const navigate = useNavigate();
@@ -13,6 +13,24 @@ const SignUpPage = () => {
   const [pendingVerification, setPendingVerification] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  const onGoogleSignUp = async () => {
+    if (!isLoaded || isSubmitting || pendingVerification) return;
+
+    try {
+      setError('');
+      setIsSubmitting(true);
+
+      await signUp.authenticateWithRedirect({
+        strategy: 'oauth_google',
+        redirectUrl: '/sso-callback',
+        redirectUrlComplete: '/',
+      });
+    } catch (err) {
+      setError(err?.errors?.[0]?.message || 'Unable to continue with Google. Please try again.');
+      setIsSubmitting(false);
+    }
+  };
 
   const onSignUp = async (event) => {
     event.preventDefault();
@@ -82,8 +100,8 @@ const SignUpPage = () => {
   };
 
   return (
-    <div className="app-background min-h-screen flex items-center justify-center px-4">
-      <div className="flex flex-col items-center gap-8">
+    <div className="app-background min-h-screen flex items-center justify-center px-4 py-8">
+      <div className="flex flex-col items-center gap-6 w-full max-w-md">
         {/* Branding */}
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/25">
@@ -97,7 +115,11 @@ const SignUpPage = () => {
           </div>
         </div>
 
-        <div className="w-full max-w-md glass-card bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)] shadow-[0_8px_32px_rgba(0,0,0,0.3)] rounded-2xl p-8">
+        <div className="w-full glass-card bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.1)] shadow-[0_8px_32px_rgba(0,0,0,0.3)] rounded-2xl p-8">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-4 text-[11px] font-medium tracking-wider uppercase glass-card-sm text-amber-400">
+            <Sparkles className="w-3 h-3" />
+            Fast Onboarding
+          </div>
           <h2 className="text-white text-2xl font-bold text-center">
             {pendingVerification ? 'Verify your email' : 'Create account'}
           </h2>
@@ -106,7 +128,27 @@ const SignUpPage = () => {
           </p>
 
           {!pendingVerification ? (
-            <form onSubmit={onSignUp} className="mt-6 space-y-4">
+            <>
+              <button
+                type="button"
+                onClick={onGoogleSignUp}
+                disabled={!isLoaded || isSubmitting}
+                className="w-full mt-6 py-3 rounded-xl font-semibold transition-all border border-white/15 bg-white/5 hover:bg-white/10 text-white disabled:opacity-70 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
+              >
+                <Chrome className="w-4 h-4" />
+                Continue with Google
+              </button>
+
+              <div className="my-5 flex items-center gap-3 text-xs uppercase tracking-wider text-white/35">
+                <div className="h-px flex-1 bg-white/10" />
+                or
+                <div className="h-px flex-1 bg-white/10" />
+              </div>
+            </>
+          ) : null}
+
+          {!pendingVerification ? (
+            <form onSubmit={onSignUp} className="space-y-4">
               <div>
                 <label className="block text-white/60 text-sm mb-2">Email</label>
                 <input

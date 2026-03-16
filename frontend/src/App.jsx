@@ -1,6 +1,6 @@
 import React from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { SignedIn, SignedOut, useAuth } from '@clerk/clerk-react';
+import { AuthenticateWithRedirectCallback, useAuth } from '@clerk/clerk-react';
 import Layout from './components/Layout';
 import HomePage from './pages/HomePage';
 import ChatPage from './pages/ChatPage';
@@ -36,6 +36,7 @@ function App() {
       {/* Public auth routes */}
       <Route path="/sign-in/*" element={<SignInPage />} />
       <Route path="/sign-up/*" element={<SignUpPage />} />
+      <Route path="/sso-callback" element={<AuthenticateWithRedirectCallback />} />
 
       {/* Protected app routes */}
       <Route
